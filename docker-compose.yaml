@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  redis_db:
+    image: redis:6.2.6
+    restart: always
+    container_name: redis_db
+    ports:
+      - "6379:6379"
+    networks:
+      - "alteia_network"
+
+networks:
+  alteia_network:
+    driver: bridge

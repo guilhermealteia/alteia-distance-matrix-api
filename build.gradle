@@ -1,0 +1,143 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    ext {
+        junitVersion = "5.8.2"
+        mockitoVersion = "4.2.0"
+        junitPlatformVersion = "1.8.2"
+        cucumberVersion = "7.2.3"
+        springfoxVersion = "3.0.0"
+        liquibaseVersion = "4.7.0"
+
+        //gRPC
+        protobufVersion = "3.17.2"
+        protocVersion = protobufVersion
+        protobufPluginVersion = "0.8.18"
+        ioGrpcVersion = "1.42.1"
+        grpcVersion = "1.42.1"
+
+        springKafkaVersion = "2.7.6"
+        springBootVersion = "2.6.1"
+        springDataVersion = "2.6.0"
+        resilience4jVersion = "1.7.0"
+
+        //        dynatraceVersion = "1.4.0"
+        openTelemetryVersion = "1.9.1"
+        openTelemetryAlphaVersion = "1.9.1-alpha"
+
+        testContainersVersion = "1.16.2"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.sonarqube' version '3.3'
+}
+
+version = '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url "https://repo.maven.apache.org/maven2" }
+    maven { url "https://m2.neo4j.org/releases" }
+    maven { url "https://repo.springsource.org/libs-release" }
+    maven { url "https://repo.springsource.org/libs-milestone" }
+    maven { url "https://people.apache.org/~psmith/logging.apache.org" }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "guilhermealteia_cleanarch-springboot"
+        property "sonar.organization", "guilhermealteia"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.login", "4bbc59382ef67034651e68d8b19e0798be83204e"
+        property "sonar.cpd.exclusions", "**/dto/**"
+    }
+}
+
+allprojects {
+    apply plugin: "java"
+
+    compileJava.options.encoding = "UTF-8"
+    compileTestJava.options.encoding = "UTF-8"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    dependencies {
+        testImplementation 'nl.jqno.equalsverifier:equalsverifier:3.8.3'
+    }
+}
+
+subprojects {
+    apply plugin: 'org.sonarqube'
+    sonarqube {
+        properties {
+            property 'sonar.coverage.jacoco.xmlReportPaths', "$projectDir.parentFile.path/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
+        }
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            // Add snapshot repository
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
+    }
+
+    dependencies {
+    }
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+    all*.exclude group: 'ch.qos.logback', module: 'logback-classic'
+    all*.exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+    compileJava.options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+wrapper {
+    gradleVersion = '7.3.3'
+}
+
+apply from: "$project.rootDir/sonar.gradle"
+
+task codeCoverageReport(type: JacocoReport) {
+
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
+    reports.xml.getRequired().set(true)
+    reports.html.getRequired().set(true)
+    reports.csv.getRequired().set(true)
+}
+
+codeCoverageReport.dependsOn ':infrastructure:compileIntegrationTestJava'
+codeCoverageReport.dependsOn ':infrastructure:integrationTest'
+codeCoverageReport.dependsOn ':test'
+codeCoverageReport.dependsOn {
+    subprojects*.test
+}

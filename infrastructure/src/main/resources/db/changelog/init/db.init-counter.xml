@@ -1,0 +1,33 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd">
+
+    <property name="uuid_function" value="NEWID()" dbms="mssql"/>
+
+    <changeSet id="create-table-counter-init" author="SystemInit">
+        <createTable schemaName="dbo"
+                     tableName="counter">
+            <column name="id" type="varchar(36)" defaultValueComputed="${uuid_function}">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(100)">
+            </column>
+            <column name="value" type="int">
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="insert-into-table-counter-init" author="SystemInit">
+        <insert schemaName="dbo"
+                tableName="counter">
+            <column name="id" value="ff1d6ee4-238b-45c2-8ad7-0837f89d7127"/>
+            <column name="name" value="Contador 1"/>
+            <column name="value" value="1"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

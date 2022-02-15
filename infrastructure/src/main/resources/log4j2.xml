@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="LogInJSON" target="SYSTEM_OUT">
+            <JsonLayout complete="false" compact="true" eventEol="true" stacktraceAsString="true">
+                <KeyValuePair key="requestId" value="${ctx:requestId}"/>
+            </JsonLayout>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="br.com.alteia.microservicechangeit" level="info" additivity="false">
+            <AppenderRef ref="LogInJSON"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="LogInJSON"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //Java(TM) Persistence API
+    implementation group: 'javax.inject', name: 'javax.inject', version: '1'
+
+    //Dependências do swagger
+    implementation "io.springfox:springfox-swagger2:${springfoxVersion}"
+    implementation "io.springfox:springfox-swagger-ui:${springfoxVersion}"
+
+    testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+
+    implementation project(':domain')
+    testImplementation project(':domain').sourceSets.test.output
+}
+
+test {
+    useJUnitPlatform()
+}

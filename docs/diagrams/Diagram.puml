@@ -1,0 +1,58 @@
+@startuml
+
+skinparam backgroundColor #EEEBDC
+
+skinparam sequence {
+    ActorBorderColor black
+    ActorFontColor Black
+    ActorFontSize 17
+    ActorFontName #FFFFFF
+
+    ArrowColor Black
+
+    LifeLineBorderColor black
+    LifeLineBackgroundColor black
+
+    ParticipantBorderColor black
+    ParticipantBackgroundColor #FFFFFF
+    ParticipantFontName Impact
+    ParticipantFontSize 17
+    ParticipantFontColor black
+}
+
+title "UC1 - Criação de contador"
+
+    actor           "Cliente"           as user
+    participant     "Browser"           as ui
+
+    box "API Gateway"
+        participant     "API Gateway"       as gateway
+    end box
+
+    box Security #pink
+        participant     "alteia-security"      as security #white
+        database        "alteia-security-db"   as securitydb
+    end box
+
+box Counters #lightgreen
+    participant     "alteia-counters"         as counters
+    database        "alteia-counters-db"      as countersdb
+    participant     "Kafka"                   as kafka
+end box
+
+note left user
+    **Ação:**
+        Acesso pela página inicial
+        <font color=blue>**https://www.alteia.com.br**</font>
+    **Premissas:**
+        Micro front-end React.js
+end note
+
+user -> ui: Login
+ui -> gateway
+gateway -> security
+security -> securitydb
+securitydb --> security
+security --> gateway
+
+@enduml

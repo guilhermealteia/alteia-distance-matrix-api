@@ -1,0 +1,24 @@
+global:
+  scrape_interval:     15s # Por padrão, intervalo de polling é de 15 segundos.
+
+# scrape_configs tem jobs e targets para cada polling.
+scrape_configs:
+  # job 1 é para testar a instrumentação prometheus de vários processos de aplicativos.
+  # O nome do job é adicionado como um rótulo job= <job_name> a qualquer série temporal extraída desta configuração.
+  - job_name: 'testprometheus'
+
+    # Substituir o padrão global de polling alvos deste job para 5 segundos.
+    scrape_interval: 5s
+
+    # Aqui colocar vários alvos, por ex. para geradores de carga e detectores Kafka
+    static_configs:
+      - targets: ['localhost:1234', 'localhost:1235']
+
+  # job 2 fornece métricas do sistema operacional (por exemplo, CPU, memória, etc.).
+  - job_name: 'node'
+
+    # Substituir o padrão global de polling alvos deste job para 5 segundos.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['localhost:9100']

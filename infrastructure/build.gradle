@@ -1,0 +1,198 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'java'
+    id 'org.springframework.boot' version '2.5.6'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'jacoco'
+}
+
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url "https://repo.maven.apache.org/maven2" }
+    maven { url "https://m2.neo4j.org/releases" }
+    maven { url "https://repo.springsource.org/libs-release" }
+    maven { url "https://repo.springsource.org/libs-milestone" }
+    maven { url "https://people.apache.org/~psmith/logging.apache.org" }
+}
+
+dependencies {
+    //Módulos do repositório ----- início
+    implementation project(':controller')
+    implementation project(':use_cases')
+    implementation project(':domain')
+    testImplementation project(':domain').sourceSets.test.output
+
+    //Lib
+    implementation project(':infrastructure-commons')
+    //Módulos do repositório ----- fim
+
+    compileOnly group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
+
+    //DataTypeConverter for JwtTokenFilter
+    implementation 'javax.xml.bind:jaxb-api:2.3.0'
+
+    //Logging
+    implementation "org.springframework.boot:spring-boot-starter-log4j2:${springBootVersion}"
+    implementation('org.apache.commons:commons-lang3:3.12.0')
+
+    //Gson
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.9'
+
+    //Spring web
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+
+    //Spring security
+    implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
+
+    //Spring validation para as annotations javax
+    runtimeOnly "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}"
+
+    //Spring redis
+    implementation("org.springframework.data:spring-data-redis:${springDataVersion}")
+    runtimeOnly('io.lettuce:lettuce-core:6.1.5.RELEASE')
+
+    //Dependências do swagger
+    implementation "io.springfox:springfox-swagger2:${springfoxVersion}"
+
+    //Anotações noframework
+    implementation group: 'javax.inject', name: 'javax.inject', version: '1'
+
+    //Monitoração
+    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+
+    //Testes
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
+        exclude group: 'junit', module: 'junit'
+    }
+
+    //Testes BDD
+    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-junit:${cucumberVersion}"
+
+    implementation('io.micrometer:micrometer-registry-prometheus:1.8.1')
+
+    //Testcontainers
+    testImplementation "org.testcontainers:testcontainers:${testContainersVersion}"
+    testImplementation "org.testcontainers:junit-jupiter:${testContainersVersion}"
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+    all*.exclude group: 'ch.qos.logback', module: 'logback-classic'
+    all*.exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+
+    unitTestCompile.extendsFrom testCompile, implementation, runtimeOnly
+    unitTestRuntime.extendsFrom testRuntime, implementation, runtimeOnly
+    unitTestImplementation.extendsFrom testImplementation, implementation, runtimeOnly
+
+    integrationTestCompile.extendsFrom testCompile, implementation, runtimeOnly
+    integrationTestRuntime.extendsFrom testRuntime, implementation, runtimeOnly
+    integrationTestImplementation.extendsFrom testImplementation, implementation, runtimeOnly
+
+    bddTestCompile.extendsFrom testCompile, implementation, runtimeOnly, testImplementation
+    bddTestRuntime.extendsFrom testRuntime, implementation, runtimeOnly, testImplementation
+    bddTestImplementation.extendsFrom implementation, runtimeOnly, testImplementation
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.test {
+    useJUnitPlatform()
+    systemProperty("cucumber.junit-platform.naming-strategy", "long")
+    exclude("**/*")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', 'src/generated/main/java', 'src/generated/main/grpc']
+        }
+    }
+
+    bddTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/bdd/java')
+        }
+        resources {
+            srcDir file('src/integrationTest/resources')
+        }
+    }
+
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/integration/java')
+        }
+        resources {
+            srcDir file('src/integrationTest/resources')
+        }
+    }
+
+    unitTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/unit-test/java')
+        }
+    }
+}
+
+task unitTest(type: Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.unitTest.output.classesDirs
+    classpath = sourceSets.unitTest.runtimeClasspath
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+task bddTest(type: Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.bddTest.output.classesDirs
+    classpath = sourceSets.bddTest.runtimeClasspath
+
+}
+
+processIntegrationTestResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+check.dependsOn integrationTest
+
+task generateDockerComposeTest() {
+    doLast {
+        FileReader fileReader = new FileReader(new File(project.rootDir, "docker-compose.yaml"))
+        new File(projectDir, "docker-compose-test.yaml").text = fileReader.text.replaceAll("container_name.*", "")
+        fileReader.close();
+
+        fileReader = new FileReader(new File(project.rootDir, "prometheus.yml"))
+        new File(projectDir, "prometheus.yml").text = fileReader.text
+        fileReader.close();
+    }
+}
+
+integrationTest.dependsOn 'generateDockerComposeTest'

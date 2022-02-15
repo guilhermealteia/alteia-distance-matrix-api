@@ -1,0 +1,112 @@
+version: "3.7"
+
+services:
+
+  sqlserver_db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: always
+    
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "!@12QWqw"
+    ports:
+      - "1433:1433"
+    networks:
+      - "gpnet"
+
+  mongo_db:
+    image: mongo:4.4.11-rc1-focal
+    restart: always
+    
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: cleanarch_mongouser
+      MONGO_INITDB_ROOT_PASSWORD: cleanarch_mongopass
+    ports:
+      - "27017:27017"
+    networks:
+      - "gpnet"
+
+  redis_db:
+    image: redis:6.2.6
+    restart: always
+    
+    ports:
+      - "6379:6379"
+    networks:
+      - "gpnet"
+
+  zookeeper:
+    image: bitnami/zookeeper:3.7-debian-10
+    
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    ports:
+      - "2181:2181"
+    volumes:
+      - "zookeeper_data:/bitnami"
+    networks:
+      - "gpnet"
+
+  kafka_broker:
+    image: bitnami/kafka:3-debian-10
+    restart: always
+    
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka_broker:9092
+    ports:
+      - "9092:9092"
+    volumes:
+      - "kafka_data:/bitnami"
+    depends_on:
+      - zookeeper
+    networks:
+      - "gpnet"
+
+  kafka-control-center:
+    image: confluentinc/cp-enterprise-control-center:6.0.1
+    hostname: control-center
+    depends_on:
+      - kafka_broker
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: kafka_broker:9092
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_CONNECT_CLUSTER: http://kafka-connect:8083
+      PORT: 9021
+    networks:
+      - "gpnet"
+
+  jaeger_tracing:
+    image: jaegertracing/all-in-one:1.16
+    restart: always
+    
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: 9411
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14250:14250"
+      - "14268:14268"
+      - "14269:14269"
+      - "9411:9411"
+    networks:
+      - "gpnet"
+
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
+
+networks:
+  gpnet:
+    driver: bridge

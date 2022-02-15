@@ -1,0 +1,381 @@
+{
+	"info": {
+		"_postman_id": "d5ba7456-0b92-45f6-9907-dfe7d6c91e66",
+		"name": "Esqueleto de microserviço",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Customer Controller",
+			"item": [
+				{
+					"name": "Criar um customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept-Charset",
+								"value": "application/xml",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Geraldo Customer\",\r\n    \"birthday\": \"1963-04-07\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/customers/customer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"customers",
+								"customer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar todos os customers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.globals.set(\"customerUuid\", jsonData[0].id);\r",
+									"\r",
+									"pm.globals.unset(\"customer\");\r",
+									"pm.globals.set(\"customer\", JSON.stringify(jsonData[0]));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter um customer por id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/customers/:customerId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"customers",
+								":customerId"
+							],
+							"variable": [
+								{
+									"key": "customerId",
+									"value": "{{customerUuid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edita um customer pelo id Copy",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{customer}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/customers/:customerId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"customers",
+								":customerId"
+							],
+							"variable": [
+								{
+									"key": "customerId",
+									"value": "{{customerUuid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Counter Controller",
+			"item": [
+				{
+					"name": "Obter um counter pelo id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/counters/ff1d6ee4-238b-45c2-8ad7-0837f89d7127",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"counters",
+								"ff1d6ee4-238b-45c2-8ad7-0837f89d7127"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criação de contadores massivo",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//64 contadores\r",
+									"var contadores = [];\r",
+									"\r",
+									"for (i = 0; i < 500; i++) {\r",
+									"    contadores[i] = \"{\\\"value\\\": 1000,\\\"name\\\": \\\"Contador \" + i + \"\\\"}\";\r",
+									"}\r",
+									"\r",
+									"pm.globals.set(\"contadores\", contadores);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{{contadores}}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/counters",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"counters"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edição de contador",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"value\": 1,\r\n    \"id\": \"ff1d6ee4-238b-45c2-8ad7-0837f89d7127\",\r\n    \"name\": \"Contador 58\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/counters/ff1d6ee4-238b-45c2-8ad7-0837f89d7127",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"counters",
+								"ff1d6ee4-238b-45c2-8ad7-0837f89d7127"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Diminui em 1 o valor do contador pelo id",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Personalizado",
+								"value": "Fabiao",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/counters/ff1d6ee4-238b-45c2-8ad7-0837f89d7127/decrease",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"counters",
+								"ff1d6ee4-238b-45c2-8ad7-0837f89d7127",
+								"decrease"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "brazilianFederalRevenue Controller",
+			"item": [
+				{
+					"name": "Obtém dados da receita federal por nome",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Personalizado",
+								"value": "Fabiao",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/v1/api/brazilianFederalRevenue?name=Guilherme Alteia",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"v1",
+								"api",
+								"brazilianFederalRevenue"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Guilherme Alteia"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Observabilidade",
+			"item": [
+				{
+					"name": "http://localhost:8080/microservicechangeit/actuator/prometheus",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/microservicechangeit/prometheus",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"microservicechangeit",
+								"prometheus"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Swagger",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/microservicechangeit/v2/api-docs",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"microservicechangeit",
+						"v2",
+						"api-docs"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
