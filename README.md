@@ -1,4 +1,4 @@
-# cleanarc-springboot
+# alteia-gcp-googleapis-udemy
 
 Esqueleto de Microsserviço baseado no clean code e na architecture com Spring Boot
 
@@ -29,11 +29,13 @@ customerCreationService.create();
 * Não utilizar imports com (*). Lembre-se de configurar a sua IDE para aceitar o máximo de imports possível. Imports
   específicos são uma forma de sabermos e utilizarmos apenas o que precisamos.
 
-## Regras sobre entidades
+## Domain (Domínio)
 
-Módulo: `domain`, pacote: `/src/main/java/br/com/alteia/microservicechangeit/entities`
+Aqui é onde mora o domínio da nossa aplicação e suas regras de negócio.
 
-* Se a entidade possuir um identificado único, utilize a anotation `@Entity` ao nível de classe e `@Id` ao nível do atributo identificador 
+Módulo: `domain`, caminho: `/src/main/java/br/com/via/microservicechangeit/entities`
+
+* Se a entidade possuir um identificado único, utilize a anotation `@Entity` ao nível de classe e `@Id` ao nível do atributo identificador
 * Não esqueça de implementar a interface `Serializable`. Ela é importante para a solução de Cache.
   ```
   public class Customer implements Serializable {
@@ -41,8 +43,10 @@ Módulo: `domain`, pacote: `/src/main/java/br/com/alteia/microservicechangeit/en
 
 ### Métodos
 
-* Métodos set devem ser privados
-* A entidade deve possuir um construtor `protected` vazio e um construtor `public` com todos os atributos necessários, sendo preenchidos pelos métodos set
+* Métodos **set** devem ser **privados**
+* A entidade deve possuir:
+  * Um construtor `protected` vazio
+  * Um construtor `public` setando todos os atributos necessários pelos métodos **set**
 
 ```
 public Counter(String id, String name, Integer value) {
@@ -51,7 +55,8 @@ public Counter(String id, String name, Integer value) {
   setValue(value);
 }
 ```
-* Defina os validadores para os métodos de entrada de dados (sets)
+* Defina validadores para os métodos de entrada de dados (sets) conforme as regras de sua entidade.
+* Os validadores podem retornar exceções para cada regra violada (como está no exemplo) ou pode-se estabelecer uma lista de exceções com todas as regras violadas de uma só vez (no nosso caso, não faz muito sentido e não está no exemplo)
 ```
 private void setName(String name) {
   standardizedSizedString(name, ...);
@@ -60,20 +65,20 @@ private void setName(String name) {
 ```
 * Sobrescreva os métodos `equals`, `hashCode` e `toString`. As entidades devem ser comparáveis ao nível de atributos e
   não de memória.
-
-OBS: Não adicione o atributo identificador de uma entidade  no equals() e hashCode().
+* Há atalhos de teclado para gerar esses métodos automaticamente
+* Não inclua o id da entidade nos métodos `equals` e `hashCode`, apenas no `toString`
   ```
   @Override
   public boolean equals(Object o) {
   if (this == o) return true;
   if (o == null || getClass() != o.getClass()) return false;
      Customer customer = (Customer) o;
-     return Objects.equals(name, customer.name) && Objects.equals(birthday, customer.birthday);
+     return Objects.equals(id, customer.id) && Objects.equals(name, customer.name) && Objects.equals(birthday, customer.birthday);
   }
   
   @Override
   public int hashCode() {
-     return Objects.hash(name, birthday);
+     return Objects.hash(id, name, birthday);
   }
   
   @Override
@@ -86,13 +91,14 @@ OBS: Não adicione o atributo identificador de uma entidade  no equals() e hashC
   }
   ```
 
-## Regras sobre DTOs
+## Data Transfer Objects (DTOs)
+Não podemos cruzar fronteiras com as nossas entidades. Portanto, aqui moram os objetos que transferem dados entre a camada de use_cases e a controller.
 
-Módulo: `controller`, pacote: `/src/main/java/br/com/alteia/microservicechangeit/*/dto`
+Módulo: `use_cases`, caminho: `/src/main/java/br/com/via/microservicechangeit/use_cases/(nome do domínio)/dto`
 
 ### Métodos
 
-* Denina os gets e sets para todos os atributos
+* Defina os gets e sets para todos os atributos
 * Sobrescreva apenas os métodos `equals` e `hashCode` para tornar os DTOs comparáveis ao nível de atributos e não de
   memória.
   ```
@@ -109,6 +115,62 @@ Módulo: `controller`, pacote: `/src/main/java/br/com/alteia/microservicechangei
       return Objects.hash(name, birthday);
   }
   ```
+### Estrutura
+* Apesar de o swagger ser um ferramental externo ao pacote java, ele pode ser utilizado nos DTOs a fim de documentar o sistema.
+* Ele não interfere no funcionamento da aplicação.
+* Caso não tenha nenhuma anotação de swagger no DTO, ele ainda será mapeado, porém sem as descrições que facilitam seu entendimento.
+* No campo `birthday` da classe abaixo, note a annotation `@ApiModelProperty`
+  * Em `value`, define-se a descrição do campo
+  * Em `example`, define-se um valor de exemplo para o campo `"2021-12-31"`
+  * Em `required`, indica-se se o campo é obrigtório ou não
+
+```
+public class CreateCustomerRequestDto {
+
+    @ApiModelProperty(value = "Nome do cliente", required = true)
+    private String name;
+
+    @ApiModelProperty(value = "Data de nascimento do cliente", example = SWAGGER_DATE_ISO8601, required = true)
+    private String birthday;
+
+    @ApiModelProperty(value = "CPF do cliente", example = SWAGGER_CPF, required = true)
+    private String cpf;
+
+    public CreateCustomerRequestDto() {
+    }
+
+    public CreateCustomerRequestDto(String name, String birthday, String cpf) {
+        this.name = name;
+        this.birthday = birthday;
+        this.cpf = cpf;
+    }
+
+    public CreateCustomerRequestDto(Customer customer) {
+        if (Objects.nonNull(customer)) {
+            this.name = customer.getName();
+            this.birthday = customer.getBirthday().toString();
+            this.cpf = customer.getCpf();
+        }
+    }
+
+    public Customer toCustomer() {
+        return new Customer(null, getName(), fromStringToLocalDateISO601(getBirthday()), getCpf());
+    }
+```
+
+## Use Cases (Casos de uso)
+Aqui é onde moram as automatizações que criamos da necessidade de negócio que temos.
+
+* Para usar bancos de dados, mensageria, ..., devemos usar interfaces que serão posteriormente implementadas na camada de infraestrutura.
+
+Módulo: `use_cases`, caminho: `/src/main/java/br/com/via/microservicechangeit/use_cases/(nome do domínio)`
+
+## Controllers (Adaptadores de interface)
+Aqui é onde moram as conversões que fazemos entre as camadas que acessam a nossa aplicação e os use cases.
+* Geralmente, as camadas externas da aplicação não entregam exatamente o que um `use_case` espera receber para o processamento.
+* Aqui podem ser utilizadas interfaces de conversão
+
+Módulo: `controller`, caminho: `/src/main/java/br/com/via/microservicechangeit/(nome do domínio)`
 
 ## Overview
 
@@ -123,39 +185,37 @@ Temos 3 pacotes essenciais:
 * `infrastructure`: Contém detalhes técnicos, configurações, camadas de base de dados, controllers, ...e não podem
   conter regras de negócio. Podem possuir dependências com frameworks.
 
+# Subindo a aplicação fora do container (Pela IDE,...)
+
 ## 1 - Suba as dependências da aplicação com o docker-compose para os testes locais
 
 ```
-docker-compose up -d
+docker-compose -f docker-compose-only-redis.yaml up -d
 ```
-
-
 
 ## 2 - Rode a aplicação localmente
 
 ```
+gradle bootRun
+```
+ou
+```
 ./gradlew bootRun
 ```
 
-## 2 - Rode a aplicação via docker
-
-OBS:
-
-1 -  Comente ou remova o comentário das linhas 37 e 38 conforme o seu sistema operacional
-
-2 - Execute o comando docker compose abaixo (a imagem docker será criada através do parametro --build)
+# Rode a aplicação no container docker
 
 ```
-docker-compose -f docker-compose-app.yaml up -d --build  
+docker-compose up -d --build  
 ```
 
-3 - Para acessar os logs via kibana vá a URL http://localhost:5601/app/management/kibana/indexPatterns
-e crie um index pattern com o texto fluentd-*. Salve e depois vá na seção "Discover", os logs da aplicação 
+1 - Para acessar os logs via kibana vá a URL http://localhost:5601/app/management/kibana/indexPatterns
+e crie um index pattern com o texto fluentd-*. Salve e depois vá na seção "Discover", os logs da aplicação
 estarão listados ali
 
-4 - Para parar a aplicação execute o comando
+2 - Para parar a aplicação e suas dependências, execute o comando:
 ```
-docker compose -f docker-compose-app.yaml down -v  
+docker-compose down -v  
 ```
 
 ## Testes
@@ -205,29 +265,9 @@ redis-cli monitor
 
 ```
 ./gradlew assemble
-docker build --build-arg JAR_FILE=infrastructure/build/libs/infrastructure-1.0.0-SNAPSHOT.jar --tag=vv/cleanarch-spring .
-docker run -p 8080:8080 --network="host" -ti -v /vv_logs/:/vv_logs/ --name cleanarch-relational vv/cleanarch-spring
+docker build --build-arg JAR_FILE=infrastructure/build/libs/infrastructure-1.0.0-SNAPSHOT.jar --tag=alteia/alteia-gcp-googleapis-udemy:latest .
+docker run -p 8080:8080 -ti --name cleanarch-relational alteia/alteia-gcp-googleapis-udemy
 ```
-
-### Geração de swagger do gRPC
-https://github.com/grpc-swagger/grpc-swagger#build-and-run
-
-```
-wget https://github.com/grpc-swagger/grpc-swagger/releases/latest/download/grpc-swagger.jar 
-java -jar grpc-swagger.jar --server.port=8080
-```
-
-Abra o link http://localhost:8080/ui/r.html
-No campo `Grpc-swagger Server` digite:
-```
-http://localhost:8080
-```
-
-No campo `Endpoint Register` digite:
-```
-localhost:9091
-```
-Clique em `Register` e boa
 
 ## Install
 

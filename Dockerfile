@@ -19,5 +19,4 @@ FROM openjdk:17.0.1
 #Inserir nome do jar via pipeline
 COPY --from=GRADLE_BUILD_IMAGE /alteia/app/src/infrastructure/build/libs/*.jar /alteia/app/cleanarch-springboot.jar
 WORKDIR /alteia/app
-EXPOSE 5000
 ENTRYPOINT ["java","-jar","/alteia/app/cleanarch-springboot.jar"]

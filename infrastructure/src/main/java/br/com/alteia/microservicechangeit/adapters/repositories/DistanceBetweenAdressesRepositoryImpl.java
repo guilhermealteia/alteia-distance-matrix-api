@@ -26,8 +26,6 @@ public class DistanceBetweenAdressesRepositoryImpl implements DistanceBetweenAdr
 
     private static final Logger LOG = Logger.getLogger(DistanceBetweenAdressesRepositoryImpl.class.getName());
 
-    private final String ADDRESS_NOT_FOUND = "NOT_FOUND";
-
     @Value("${google.api.distance.url}")
     private String googleApiDistanceUrl;
 
@@ -60,16 +58,16 @@ public class DistanceBetweenAdressesRepositoryImpl implements DistanceBetweenAdr
 
             if (OK.equals(response.getStatusCode()) && OK.getReasonPhrase().equals(jsonNode.findValue("status").asText())) {
 
-                destinationAddresses = objectMapper.readValue(jsonNode.findValue("destination_addresses").toString(), new TypeReference<List<String>>() {
-                });
-                originAddresses = objectMapper.readValue(jsonNode.findValue("origin_addresses").toString(), new TypeReference<List<String>>() {
-                });
+                TypeReference<List<String>> typeReference = new TypeReference<>() {
+                };
 
-                JsonNode rows = jsonNode.findValue("rows");
-                JsonNode elements = rows.get(0).findValue("elements");
+                destinationAddresses = objectMapper.readValue(jsonNode.findValue("destination_addresses").toString(), typeReference);
+                originAddresses = objectMapper.readValue(jsonNode.findValue("origin_addresses").toString(), typeReference);
+
+                JsonNode elements = jsonNode.findValue("rows").get(0).findValue("elements");
                 String status = elements.findValue("status").asText();
 
-                if (!ADDRESS_NOT_FOUND.equals(status)) {
+                if (!"NOT_FOUND".equals(status)) {
                     distance = elements.findValue("distance").get("text").asText();
                     duration = elements.findValue("duration").get("text").asText();
                 }

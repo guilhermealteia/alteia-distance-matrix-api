@@ -10,19 +10,15 @@ import java.util.Objects;
 public class GetDistanceBetweenAdressesResponseDto {
 
     @ApiModelProperty(value = "CEP origem", required = true)
-    @JsonProperty(required = true)
     private String origin;
 
     @ApiModelProperty(value = "CEP destino", required = true)
-    @JsonProperty(required = true)
     private String destination;
 
     @ApiModelProperty(value = "Distância dentre origem e destino", required = true)
-    @JsonProperty(required = true)
     private String distance;
 
     @ApiModelProperty(value = "Duração do trajeto", required = true)
-    @JsonProperty(required = true)
     private String duration;
 
     public GetDistanceBetweenAdressesResponseDto() {

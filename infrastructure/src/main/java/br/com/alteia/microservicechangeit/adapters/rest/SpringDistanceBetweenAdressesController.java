@@ -22,8 +22,8 @@ public class SpringDistanceBetweenAdressesController {
         this.distanceBetweenAdressesController = distanceBetweenAdressesController;
     }
 
-    @ApiOperation(value = DistanceBetweenAdressesEndpointsConstants.GET_DISTANCE_BETWEEN_ADDRESSES_BY_ORIGIN_CEP_AND_DESTINATION_CEP_DESCRIPTION)
-    @GetMapping(value = DistanceBetweenAdressesEndpointsConstants.GET_DISTANCE_BETWEEN_ADDRESSES_BY_ORIGIN_CEP_AND_DESTINATION_CEP_PATH)
+    @ApiOperation(value = DistanceBetweenAdressesEndpointsConstants.GET_DISTANCE_BETWEEN_TWO_CEPS_DESCRIPTION)
+    @GetMapping(value = DistanceBetweenAdressesEndpointsConstants.GET_DISTANCE_BETWEEN_TWO_CEPS_PATH)
     public GetDistanceBetweenAdressesResponseDto getEmployeeByIdV1(@RequestParam String originCep, @RequestParam String destinationCep) {
         return distanceBetweenAdressesController.getDistanceBetweenAdressesByOriginCepAndDestinationCepV1(originCep, destinationCep);
     }

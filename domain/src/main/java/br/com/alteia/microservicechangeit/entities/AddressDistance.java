@@ -13,9 +13,6 @@ public class AddressDistance implements Serializable {
     private String distance;
     private String duration;
 
-    protected AddressDistance() {
-    }
-
     public AddressDistance(String destination, String origin, String distance, String duration) {
         setDestination(destination);
         setOrigin(origin);
@@ -57,28 +54,5 @@ public class AddressDistance implements Serializable {
     private void setDuration(String duration) {
         notNull("duration", duration);
         this.duration = duration;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AddressDistance that = (AddressDistance) o;
-        return Objects.equals(destination, that.destination) && Objects.equals(origin, that.origin) && Objects.equals(distance, that.distance) && Objects.equals(duration, that.duration);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(destination, origin, distance, duration);
-    }
-
-    @Override
-    public String toString() {
-        return "AddressDistance{" +
-                "destination='" + destination + '\'' +
-                ", origin='" + origin + '\'' +
-                ", distance=" + distance +
-                ", duration=" + duration +
-                '}';
     }
 }

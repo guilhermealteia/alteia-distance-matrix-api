@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static br.com.alteia.common.security.type.UserRole.INTERNAL_USER_ROLE;
-import static br.com.alteia.microservicechangeit.distance_between_adresses.DistanceBetweenAdressesEndpointsConstants.GET_DISTANCE_BETWEEN_ADDRESSES_BY_ORIGIN_CEP_AND_DESTINATION_CEP_PATH;
+import static br.com.alteia.microservicechangeit.distance_between_adresses.DistanceBetweenAdressesEndpointsConstants.GET_DISTANCE_BETWEEN_TWO_CEPS_PATH;
 import static java.lang.String.format;
 import static org.springframework.http.HttpMethod.GET;
 
@@ -88,7 +88,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 //Funcionalidades
 
                 //Google Distance API
-                .antMatchers(GET, GET_DISTANCE_BETWEEN_ADDRESSES_BY_ORIGIN_CEP_AND_DESTINATION_CEP_PATH).hasAnyAuthority(INTERNAL_USER_ROLE)
+                .antMatchers(GET, GET_DISTANCE_BETWEEN_TWO_CEPS_PATH).hasAnyAuthority(INTERNAL_USER_ROLE)
 
                 .antMatchers("/**").denyAll();
 
