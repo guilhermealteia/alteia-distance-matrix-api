@@ -1,7 +1,6 @@
 package br.com.alteia.microservicechangeit.entities;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 import static br.com.alteia.microservicechangeit.use_cases.common.utils.EntityFieldsValidations.minLength;
 import static br.com.alteia.microservicechangeit.use_cases.common.utils.EntityFieldsValidations.notNull;
@@ -54,5 +53,15 @@ public class AddressDistance implements Serializable {
     private void setDuration(String duration) {
         notNull("duration", duration);
         this.duration = duration;
+    }
+
+    @Override
+    public String toString() {
+        return "AddressDistance{" +
+                "destination='" + destination + '\'' +
+                ", origin='" + origin + '\'' +
+                ", distance='" + distance + '\'' +
+                ", duration='" + duration + '\'' +
+                '}';
     }
 }

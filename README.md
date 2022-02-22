@@ -261,11 +261,10 @@ redis-cli --latency -h localhost -p 6379
 redis-cli monitor
 ```
 
-### Gere e execute uma imagem docker (mude o artefato {.jar})
+### Gere e execute uma imagem docker:
 
 ```
-./gradlew assemble
-docker build --build-arg JAR_FILE=infrastructure/build/libs/infrastructure-1.0.0-SNAPSHOT.jar --tag=alteia/alteia-gcp-googleapis-udemy:latest .
+docker build  --tag=alteia/alteia-gcp-googleapis-udemy:latest .
 docker run -p 8080:8080 -ti --name cleanarch-relational alteia/alteia-gcp-googleapis-udemy
 ```
 

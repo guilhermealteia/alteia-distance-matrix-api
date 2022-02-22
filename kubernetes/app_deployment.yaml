@@ -1,0 +1,35 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "app-dma"
+  namespace: "default"
+  labels:
+    app: "app-dma"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "app-dma"
+  template:
+    metadata:
+      labels:
+        app: "app-dma"
+    spec:
+      containers:
+        - name: "alteia-gcp-googleapis-udemy"
+          image: "us-east1-docker.pkg.dev/ultra-water-341720/docker-repo/distance-matrix-api-integration"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+            - name: REDIS_HOSTREDIS_HOST
+              value: redis-master
+            - name: GOOGLE_API_DISTANCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: credentials
+                  key: GOOGLE_API_DISTANCE_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: credentials
+                  key: JWT_SECRET

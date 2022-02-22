@@ -58,7 +58,7 @@ dependencies {
 
     //Spring redis
     implementation("org.springframework.data:spring-data-redis:${springDataVersion}")
-    runtimeOnly('io.lettuce:lettuce-core:6.1.5.RELEASE')
+    runtimeOnly 'io.lettuce:lettuce-core:6.1.6.RELEASE'
 
     //Dependências do swagger
     implementation "io.springfox:springfox-swagger2:${springfoxVersion}"

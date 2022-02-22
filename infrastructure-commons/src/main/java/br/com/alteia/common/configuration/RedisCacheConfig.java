@@ -1,6 +1,9 @@
 package br.com.alteia.common.configuration;
 
 import br.com.alteia.common.adapters.handlers.CustomCacheErrorHandler;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
+import io.lettuce.core.TimeoutOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
@@ -13,6 +16,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -25,6 +29,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static java.time.Duration.ofMillis;
 
 @Conditional(RedisCacheCondition.class)
 @Configuration
@@ -131,6 +137,21 @@ public class RedisCacheConfig extends CachingConfigurerSupport {
                 .build();
         redisCacheManager.setTransactionAware(true);
         return redisCacheManager;
+    }
+
+    @Bean
+    public LettuceClientConfiguration clientConfiguration() {
+        ClientOptions clientOptions = ClientOptions.builder()
+                .timeoutOptions(
+                        TimeoutOptions.builder()
+                                .fixedTimeout(ofMillis(timeoutsAndCommands.get("CONNECT")))
+                                .build()
+                )
+                .socketOptions(SocketOptions.builder().connectTimeout(ofMillis(timeoutsAndCommands.get("CONNECT"))).build())
+                .build();
+        return LettuceClientConfiguration.builder()
+                .clientOptions(clientOptions)
+                .build();
     }
 
     @Bean

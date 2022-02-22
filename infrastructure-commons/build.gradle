@@ -53,6 +53,7 @@ dependencies {
 
     //Redis
     compileOnly("org.springframework.data:spring-data-redis:${springDataVersion}")
+    compileOnly 'io.lettuce:lettuce-core:6.1.6.RELEASE'
 
     //Kafka
     compileOnly "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
