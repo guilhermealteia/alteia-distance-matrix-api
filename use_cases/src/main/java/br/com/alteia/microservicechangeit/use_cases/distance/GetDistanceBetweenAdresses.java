@@ -7,7 +7,8 @@ import br.com.alteia.microservicechangeit.use_cases.distance.dto.GetDistanceBetw
 import javax.inject.Named;
 import java.util.Objects;
 
-import static br.com.alteia.microservicechangeit.use_cases.common.enums.DistanceBetweenAdressesUseCaseErrorMessages.DISTANCE_BETWEEN_ADRESSES_USE_CASE_ERROR_MESSAGES_NOT_FOUND;
+import static br.com.alteia.microservicechangeit.use_cases.common.enums.DistanceBetweenAdressesUseCaseErrorMessages.DISTANCE_BETWEEN_ADRESSES_NOT_FOUND;
+
 
 @Named
 public class GetDistanceBetweenAdresses {
@@ -24,8 +25,8 @@ public class GetDistanceBetweenAdresses {
 
         if (Objects.isNull(addressDistance)) {
             throw new NotFoundException(
-                    DISTANCE_BETWEEN_ADRESSES_USE_CASE_ERROR_MESSAGES_NOT_FOUND.getCode(),
-                    DISTANCE_BETWEEN_ADRESSES_USE_CASE_ERROR_MESSAGES_NOT_FOUND.getMessage(),
+                    DISTANCE_BETWEEN_ADRESSES_NOT_FOUND.getCode(),
+                    DISTANCE_BETWEEN_ADRESSES_NOT_FOUND.getMessage(),
                     originCep,
                     destinationCep
             );
