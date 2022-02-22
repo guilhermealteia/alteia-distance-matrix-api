@@ -11,14 +11,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static br.com.alteia.microservicechangeit.adapters.repositories.enums.DistanceBetweenAdressesRepositoryErrorMessages.DISTANCE_BETWEEN_ADRESSES_GENERIC;
 import static br.com.alteia.microservicechangeit.configuration.CacheNames.GET_DISTANCE_BETWEEN_ADDRESSES_BY_ORIGIN_CEP_AND_DESTINATION_CEP;
-import static br.com.alteia.microservicechangeit.use_cases.common.enums.DistanceBetweenAdressesUseCaseErrorMessages.DISTANCE_BETWEEN_ADRESSES_USE_CASE_ERROR_MESSAGES_GENERIC;
 import static org.springframework.http.HttpStatus.OK;
 
 @Service
@@ -36,20 +37,24 @@ public class DistanceBetweenAdressesRepositoryImpl implements DistanceBetweenAdr
     @Cacheable(value = GET_DISTANCE_BETWEEN_ADDRESSES_BY_ORIGIN_CEP_AND_DESTINATION_CEP, key = "{#originCep, #destinationCep}", unless = "#result == null")
     public AddressDistance get(String originCep, String destinationCep) {
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response
-                = restTemplate.getForEntity(googleApiDistanceUrl
-                        + "?destinations="
-                        + destinationCep
-                        + "&origins="
-                        + originCep
-                        + "&key=" + googleApiDistanceKey
-                , String.class);
+        ResponseEntity<String> response;
+        try {
+            response = restTemplate.getForEntity(googleApiDistanceUrl
+                            + "?destinations="
+                            + destinationCep
+                            + "&origins="
+                            + originCep
+                            + "&key=" + googleApiDistanceKey
+                    , String.class);
+        } catch (HttpClientErrorException e) {
+            throw getIntegrationException(googleApiDistanceUrl, e.getStatusCode().getReasonPhrase());
+        }
 
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = null;
-        List<String> destinationAddresses = null;
-        List<String> originAddresses = null;
+        JsonNode jsonNode;
+        List<String> destinationAddresses;
+        List<String> originAddresses;
         String distance = null;
         String duration = null;
 
@@ -67,23 +72,17 @@ public class DistanceBetweenAdressesRepositoryImpl implements DistanceBetweenAdr
                 JsonNode elements = jsonNode.findValue("rows").get(0).findValue("elements");
                 String status = elements.findValue("status").asText();
 
-                if (!"NOT_FOUND".equals(status)) {
+                if ("OK".equals(status)) {
                     distance = elements.findValue("distance").get("text").asText();
                     duration = elements.findValue("duration").get("text").asText();
                 }
-
             } else {
-                throw new IntegrationException(
-                        DISTANCE_BETWEEN_ADRESSES_USE_CASE_ERROR_MESSAGES_GENERIC.getCode(),
-                        DISTANCE_BETWEEN_ADRESSES_USE_CASE_ERROR_MESSAGES_GENERIC.getMessage(),
-                        response.getStatusCode(),
-                        response.getBody()
-                );
+                throw getIntegrationException(googleApiDistanceUrl, response.getStatusCode().getReasonPhrase());
             }
 
         } catch (JsonProcessingException e) {
             LOG.log(Level.SEVERE, "Error deserializing json from Google Distance API", e);
-            return null;
+            throw getIntegrationException(googleApiDistanceUrl, response.getStatusCode().getReasonPhrase());
         }
 
         return new AddressDistance(
@@ -93,5 +92,14 @@ public class DistanceBetweenAdressesRepositoryImpl implements DistanceBetweenAdr
                 duration
         );
 
+    }
+
+    private IntegrationException getIntegrationException(String url, String status) {
+        return new IntegrationException(
+                DISTANCE_BETWEEN_ADRESSES_GENERIC.getCode(),
+                DISTANCE_BETWEEN_ADRESSES_GENERIC.getMessage(),
+                url,
+                status
+        );
     }
 }
