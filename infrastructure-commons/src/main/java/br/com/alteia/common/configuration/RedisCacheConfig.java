@@ -142,11 +142,7 @@ public class RedisCacheConfig extends CachingConfigurerSupport {
     @Bean
     public LettuceClientConfiguration clientConfiguration() {
         ClientOptions clientOptions = ClientOptions.builder()
-                .timeoutOptions(
-                        TimeoutOptions.builder()
-                                .fixedTimeout(ofMillis(timeoutsAndCommands.get("CONNECT")))
-                                .build()
-                )
+                .timeoutOptions(TimeoutOptions.builder().fixedTimeout(ofMillis(timeoutsAndCommands.get("default_cmd_timeout"))).build())
                 .socketOptions(SocketOptions.builder().connectTimeout(ofMillis(timeoutsAndCommands.get("CONNECT"))).build())
                 .build();
         return LettuceClientConfiguration.builder()
